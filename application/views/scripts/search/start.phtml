@@ -1,5 +1,81 @@
-<h2>Hello World</h2>
+<h2>Search images by location.</h2>
 
-<script>
+<form id="get_location_form" action="#" method="post">
 
+	<fieldset>
+		<legend>Enter your lat/lng:</legend>
+		<table>
+			<tr>
+				<th>Latitude:</th>
+				<td><input type="text" name="cur_loc_lat" id="cur_loc_lat" maxlength="40" class="search_param point" /></td>
+			</tr>
+			<tr>
+				<th>Longitude:</th>
+				<td><input type="text" name="cur_loc_lon" id="cur_loc_lon" maxlength="40" class="search_param point" /></td>
+			</tr>	
+		</table>
+		<input type="hidden" class="search_param" name="acc_token" id="acc_token" value="<?php echo $_SESSION['access_token']; ?>" />
+	</fieldset>
+
+	<input type="button" id="get_location" name="get_location" value="Get My Location" />
+	<input type="submit" id="submit" name="submit" value="Submit" />
+</form>
+
+<div id="local_image_list"></div>
+
+<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=true"></script>
+<script type="text/javascript">
+
+$(function(){
+	//ONLY SUBMIT FORM VIA AJAX
+	$('#get_location_form').submit(function() {
+		search();
+		return false;
+	});
+
+	/*FILTER ALL INPUTS BEFORE POST*/
+    $('.point').bind('input', function() {
+    	$(this).val($(this).val().replace(/[^0-9.-]/gi, ''));
+    });	
+
+    $('.local').bind('input', function() {
+    	$(this).val($(this).val().replace(/[^a-z0-9,. '-]/gi, ''));
+    });	
+    
+	function search() {
+		$.ajax({
+			url:"ajaxsearch",
+			type:"POST",
+			data:$(".search_param").serialize(),
+			success: function(msg) {
+				$("#local_image_list").html('');
+				$("#local_image_list").html(msg);
+			} 
+		});
+	}
+
+	$('#get_location').click(function() {
+		if(navigator.geolocation) {
+			navigator.geolocation.getCurrentPosition(function(position) {
+				var pos = new google.maps.LatLng(position.coords.latitude,position.coords.longitude);
+				$('#cur_loc_lat').val(position.coords.latitude);
+				$('#cur_loc_lon').val(position.coords.longitude);
+			}, function() {
+				handleNoGeolocation(true);
+			});
+		} else {
+			handleNoGeolocation(false);
+		}
+	});
+
+	//INFORM USER THERE BROWSER SUCKS	
+	function handleNoGeolocation(errorFlag) {
+		if (errorFlag) {
+			var content = 'Error: The Geolocation service failed.';
+		} else {
+			var content = 'Error: Your browser doesn\'t support geolocation.';
+		}
+		alert(content);
+	}
+});
 </script>
