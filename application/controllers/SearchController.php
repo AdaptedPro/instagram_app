@@ -1,7 +1,7 @@
 <?php
 class SearchController extends Zend_Controller_Action
 {
-	
+	const status_msg = "Error on page";
     public function init()
     {
     	$config						= Zend_Registry::get('config');
@@ -31,14 +31,15 @@ class SearchController extends Zend_Controller_Action
     	$response_json = json_decode($response);
     	 
     	#SET ACCESS TOKEN FOR CONTROLLER->VIEW
-    	$this->view->access_token = $response_json->access_token;   	
+    	$this->view->access_token = $response_json->access_token; 
+
+    	if ($response_json->error) {
+    		//self::status_msg;
+    	}
     }
     
     public function indexAction()
-    {
-    	#SET DB CONNECTIONS
-    	#DECLARE VIEW VARS
-    	
+    {    	
     	#SET VIEW
     	$this->view->render("search/index.phtml");
     }
@@ -46,7 +47,6 @@ class SearchController extends Zend_Controller_Action
     public function startAction()
     {	
     	#SET VIEW
-
     	$this->view->token = $this->view->access_token;
     	$_SESSION['access_token'] = $this->view->access_token;
     	$this->view->render("search/start.phtml");    	
@@ -59,22 +59,29 @@ class SearchController extends Zend_Controller_Action
     	$this->_helper->getHelper('layout')->disableLayout();
     	
     	#GET SEARCH RESULTS
-    	$search_url	= "https://api.instagram.com/v1/locations/search?lat=".urlencode($_POST['cur_loc_lat'])."&lng=".urlencode($_POST['cur_loc_lon'])."&access_token=".urlencode($_POST['acc_token']);
+    	//https://api.instagram.com/v1/locations/search?
+    	$search_url	= "https://api.instagram.com/v1/media/search?lat="
+    			.urlencode($_POST['cur_loc_lat'])."&lng="
+    			.urlencode($_POST['cur_loc_lon'])."&access_token="
+    			.urlencode($_POST['acc_token']);
     	$json		= file_get_contents($search_url);
     	$json_data	= json_decode($json, true);
     	
-    	echo $this->buildOutput($json_data['data']);
+    	return $this->buildOutput($json_data['data']);
     }
     
-    private function buildOutput($data)
+    private function buildOutput($json)
     {    	
-    	$output = "<ul> \n";
-    	foreach($data as $key => $val) {
-    		$output .= "<li>" .$val['name'] . "</li> \n";
+    	foreach($json as $key => $val) {
+    		$output .= "<li><a href='" .$val['link']. "' target='blank'>".$val['user']['username']. "</a></li> \n";  		
     	}
-    	$output .= "</ul> \n";
     	
-    	return $output;
+    	if ($output!=null) {
+    		echo "<ul> \n" . $output . " \n </ul> \n";
+    	} else {
+    		echo "<p>No Images found. The limit must have been reached.</p>";
+    	}
+    		
     }
 
 }

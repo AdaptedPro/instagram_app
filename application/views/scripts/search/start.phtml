@@ -1,3 +1,4 @@
+
 <h2>Search images by location.</h2>
 
 <form id="get_location_form" action="#" method="post">
@@ -22,60 +23,7 @@
 </form>
 
 <div id="local_image_list"></div>
+<div id="map_canvas" style="width:100%;height:100%;"></div>
 
 <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=true"></script>
-<script type="text/javascript">
-
-$(function(){
-	//ONLY SUBMIT FORM VIA AJAX
-	$('#get_location_form').submit(function() {
-		search();
-		return false;
-	});
-
-	/*FILTER ALL INPUTS BEFORE POST*/
-    $('.point').bind('input', function() {
-    	$(this).val($(this).val().replace(/[^0-9.-]/gi, ''));
-    });	
-
-    $('.local').bind('input', function() {
-    	$(this).val($(this).val().replace(/[^a-z0-9,. '-]/gi, ''));
-    });	
-    
-	function search() {
-		$.ajax({
-			url:"ajaxsearch",
-			type:"POST",
-			data:$(".search_param").serialize(),
-			success: function(msg) {
-				$("#local_image_list").html('');
-				$("#local_image_list").html(msg);
-			} 
-		});
-	}
-
-	$('#get_location').click(function() {
-		if(navigator.geolocation) {
-			navigator.geolocation.getCurrentPosition(function(position) {
-				var pos = new google.maps.LatLng(position.coords.latitude,position.coords.longitude);
-				$('#cur_loc_lat').val(position.coords.latitude);
-				$('#cur_loc_lon').val(position.coords.longitude);
-			}, function() {
-				handleNoGeolocation(true);
-			});
-		} else {
-			handleNoGeolocation(false);
-		}
-	});
-
-	//INFORM USER THERE BROWSER SUCKS	
-	function handleNoGeolocation(errorFlag) {
-		if (errorFlag) {
-			var content = 'Error: The Geolocation service failed.';
-		} else {
-			var content = 'Error: Your browser doesn\'t support geolocation.';
-		}
-		alert(content);
-	}
-});
-</script>
+<script src="<?php echo $this->baseUrl(); ?>/js/search.js"></script>
